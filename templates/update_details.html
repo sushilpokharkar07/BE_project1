@@ -1,0 +1,367 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta id="staff_data" data-staff="{{ staffInfo }}">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <!-- ######## -->
+    <link rel="stylesheet" href=
+"https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+        integrity=
+"sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2"
+        crossorigin="anonymous">
+  
+    <!-- Import jquery cdn -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity=
+"sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous">
+    </script>
+      
+    <script src=
+"https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+        integrity=
+"sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+        crossorigin="anonymous"></script>
+
+        <!-- ########## -->
+    
+    
+    <!-- Google distributed JQUERY -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    
+    <!-- Custom CSS for Layout -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <title>Face Recognition</title>
+</head>
+<body>
+    <div id="header">
+        <div class="container">
+            <div class="row">
+                <div class="col-1">
+                    <a href="/" class="previous" style="color:black">&laquo; Back</a>
+                </div>
+                <div class="col-11"> 
+                    <h1><p class="text-center">Update Details</p></h1>
+                </div>              
+            </div>
+        </div>
+    </div> 
+       
+        
+    </div>
+
+    <div id="enter-name">
+        <div >
+            Department:
+            <select name="dept" id="dept">
+                <option>All Users</option>
+                <option>First Year Department</option>
+                <option>Computer</option>
+                <option>Electronics & Telecommunication</option>
+                <option>Mechanical</option>
+                <option>Civil</option>
+                <!-- <option>None of the above</option> -->
+            </select>
+            <br><br>
+        </div>
+        <div id="button-name-div">
+            <button id="search-users">Search</button>
+            
+        </div>
+    </div>
+
+    <div>
+        <table border="5px" class="table table-bordered" id="staff-table">
+            <tr>
+                <th>Sr. No.</th>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Department</th>
+                <th></th>
+            </tr>
+            <tbody id="table-body">
+            </tbody>
+            
+            
+        </table>
+    </div>
+
+    
+
+    <div id="spinner-div">
+        <div id="spinner">
+        </div>
+        <div id="spinner-text">
+            Searching...
+        </div>
+    </div>
+
+
+    <script>
+
+        $(document).ready(function(){
+
+
+
+
+
+            var rowIdx = 0;
+            var staff_data = $('#staff_data').data();
+            //renderTable(staff_data)
+            if(staff_data != undefined){
+                console.log(staff_data);
+                staff_list = JSON.parse(staff_data['staff'].replaceAll("\'","\""));
+                
+                console.log(typeof staff_list)
+                $('#table-body').empty();
+                
+                for(var e in staff_list){
+                   record = staff_list[e];
+                    
+                   $('#table-body').append(`
+                    <tr id="R${++rowIdx}">
+                        <td class="row-index text-center" ><span class="sn">${rowIdx}</span></td>
+                        <td class="row-index text-center"><p>${record['ID']}</p></td>
+                        <td class="row-index text-center"><p>${record['Name']}</p></td>
+                        <td class="row-index text-center"><p>${record['Department']}</p></td>
+                        <!--<td class="text-center"><button class="btn btn-primary" type="button" data-toggle="modal" data-target="#userModal">Update</button></td>--!>
+                        <td class="text-center"><a class="btn btn-xs btn-primary delete-record" data-id="${rowIdx}" data-name="${record['Name']}"><i class="glyphicon glyphicon-trash"></i></a></td>
+                    </tr>`);
+            
+                }
+            }
+
+            jQuery(document).delegate('a.delete-record', 'click', function(e) {
+                e.preventDefault();    
+                var didConfirm = confirm("Are you sure You want to delete?");
+                if (didConfirm == true) {
+                var id = jQuery(this).attr('data-id');
+                var name = jQuery(this).attr('data-name');
+                console.log("User to delete :",name);
+                var targetDiv = jQuery(this).attr('targetDiv');
+                // Delete record from database
+                
+                $.ajax({
+                    url: '/delete-user',
+                        type: 'post',
+                        data: {
+                            name : name
+                        },
+                        success:function(data){
+                            console.log(data);
+                            if(data === "SUCCESS"){
+                                jQuery('#R' + id).remove();
+                                alert("User deleted successfully...")
+                            }
+                            else{
+                                alert("Could not delete user...!")
+                            }
+                        },
+                        error:function(error){
+                            alert("Some backend error");
+                        }
+                });
+                
+                
+                //regnerate index number on table
+                $('#table-body tr').each(function(index) {
+                //alert(index);
+                $(this).find('span.sn').html(index+1);
+                });
+                return true;
+            } else {
+                return false;
+            }
+            });
+            
+
+            $("#search-users").click(function(){
+                let dept = $("#dept").val();
+                console.log(dept);
+
+                if (dept === '' || dept === null || dept === undefined){
+                    alert("Please select department");
+                }
+                else{
+                    
+                    getUsers(dept);
+                }
+            });
+
+            function getUsers(dept){
+                $("#spinner-div").css("display", "block");
+                $.ajax({
+                        url: '/get-users',
+                        type: 'post',
+                        data: {
+                            dept : dept
+                        },
+                        success:function(data){
+                            console.log(data);
+                            renderTable(data)
+                        },
+                        error:function(error){
+                            alert("Some backend error");
+                        }
+                    });
+                    $("#spinner-div").css("display", "none");
+            }
+
+            function renderTable(data){
+                var rowIdx = 0;
+                if(data != undefined){
+                console.log("Another data: ",data);
+                
+                //staff_list = JSON.parse(data['staff'].replaceAll("\'","\""));
+                
+                //console.log(typeof staff_list)
+                $('#table-body').empty();
+                for(var e in data){
+                   record = data[e];
+                    
+                   $('#table-body').append(`
+                   <tr id="R${++rowIdx}">
+                        <td class="row-index text-center" ><span class="sn">${rowIdx}</span></td>
+                        <td class="row-index text-center"><p>${record['ID']}</p></td>
+                        <td class="row-index text-center"><p>${record['Name']}</p></td>
+                        <td class="row-index text-center"><p>${record['Department']}</p></td>
+                        <!--<td class="text-center"><button class="btn btn-primary" type="button">Update</button></td>--!>
+                        <td class="text-center"><a class="btn btn-xs btn-primary delete-record" data-id="${rowIdx}" data-name="${record['Name']}"><i class="glyphicon glyphicon-trash"></i></a></td>
+                    </tr>`);
+            
+                }
+            }
+            }
+
+            var video_container = null;
+            var canvas_container = null;
+            var captured_image_counter = 0;
+
+            var width = 640;
+            var height = 480;
+
+            function startup(){
+
+                canvas_container = document.getElementById("webcam-canvas");
+                video_container = document.getElementById("webcam-video");
+                navigator.mediaDevices.getUserMedia({'video':true})
+                .then(stream => {
+                    video_container.srcObject = stream;
+                    video_container.play();
+                    $("#take-photo-button").css("display", "block");
+                })
+                .catch(error => {
+                    alert("Video Processing error", error);
+                })
+            }
+
+            function take_photo(){
+                var context = canvas_container.getContext("2d");
+                if (width && height) {
+                    canvas_container.width = width;
+                    canvas_container.height = height;
+
+                    context.drawImage(video_container, 0, 0, width, height);
+
+                    var data = canvas_container.toDataURL('image/png');
+                    var image_style = "top: " + 15 * captured_image_counter + "px;";
+                    image_style += " z-index: " + parseInt(captured_image_counter) + 1;
+                    var image_id = "captured-image-" + captured_image_counter;
+
+                    var attributes = {id : image_id, src: data, style: image_style, class: 'captured-image'};
+                    $("#photo-div").append($("<img>", attributes));
+
+                    captured_image_counter++;
+                    $("#submit-all-images-button").html("Submit <b>" + captured_image_counter + "</b> images");
+                }
+            }
+            
+            $("#take-photo-button").click(take_photo);
+
+            $("#submit-all-images-button").click(function(){
+                if (captured_image_counter === 0){
+                    alert("You need to click some photos");
+                }
+                else{
+                    $("#spinner-div").css("display", "block");
+                    let images_to_be_sent = []
+                    let person_name = $("#name-of-person").val();
+                    $("#photo-div > img").each(function(){
+                        images_to_be_sent.push($(this).attr('src'));
+                    });
+                    images_to_be_sent = JSON.stringify(images_to_be_sent);
+                    $.ajax({
+                        url:'/submit-photos',
+                        type: 'post',
+                        data: {
+                            name: person_name,
+                            images: images_to_be_sent
+                        },
+                        success:function(data){
+                            console.log("DATA=>",data);
+                            $("#spinner-div").css("display", "none");
+                            window.location.href = window.location.href;
+                        },
+                        error:function(err){
+                            alert(err);
+                        }
+                    });
+                }
+            });
+
+            $("div#photo-div").on('click', 'img', function(){
+                var id = $(this).attr('id');
+
+                var image = document.getElementById(id);
+                var modal = document.getElementById("image-modal-div");
+                var modal_image = document.getElementById("image-modal-img");
+
+                image.onclick = function(){
+                    modal.style.display = "block";
+                    modal_image.src = this.src;
+                    $("#delete-modal-image-button").data('id', id);
+                }
+
+                let span = document.getElementById("close-image-modal");
+                
+                span.onclick = function(){
+                    modal.style.display = "none";
+                }
+            });
+
+            $("#delete-modal-image-button").click(function(){
+                let delete_image_id = $(this).data('id');
+                $("#"+delete_image_id).remove();
+
+                var modal = document.getElementById("image-modal-div");
+                modal.style.display = "none";
+
+                var temp_counter = 0;
+                $("#photo-div > img").each(function(){
+                    var id_element = "captured-image-"+temp_counter;
+                    $(this).removeAttr('style');
+                    $(this).css("top", 15 * temp_counter + "px");
+                    $(this).css("z-index", parseInt(temp_counter)+1);
+                    $(this).attr('id', id_element);
+                    temp_counter += 1;
+                });
+
+                captured_image_counter = temp_counter;
+                $("#submit-all-images-button").html("Submit <b>" + captured_image_counter + "</b> images");
+
+            });
+
+        });
+
+    </script>
+
+</body>
+</html>

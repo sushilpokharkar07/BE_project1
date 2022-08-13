@@ -1,0 +1,164 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+     
+        <!-- Google distributed JQUERY -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+        
+        <!-- Custom CSS for Layout -->
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+        <title>Facer - Reports</title>
+
+    </head>
+    <body>
+        <div id="header">
+            <div class="container">
+                <div class="row">
+                    <div class="col-1">
+                        <a href="/" class="previous" style="color:black">&laquo; Back</a>
+                    </div>
+                    <div class="col-11"> 
+                        <h1><p class="text-center">Reports</p></h1>
+                    </div>              
+                </div>
+            </div>
+        </div> 
+        <form action = "/reports" method="POST" id="monthSelector">
+            <input type="month" name="month">
+            <!-- <select name="months" id="months" form="monthSelector">
+                <option value="01">January</option>
+                <option value="02">February</option>
+                <option value="03">March</option>
+                <option value="04">April</option>
+                <option value="01">May</option>
+                <option value="01">June</option>
+                <option value="01">July</option>
+                <option value="01">August</option>
+                <option value="01">September</option>
+                <option value="01">October</option>
+                <option value="01">November</option>
+                <option value="01">December</option>
+              </select> -->
+            <input type="submit">
+        </form>
+        {% if data %}
+        <div>
+        <table border="5" class="table table-bordered">
+            <tr>
+                <th>Name</th>
+                <th>No. of days present</th>
+                <th>No. of working days</th>
+                <th>Attendance</th>
+            </tr>
+            {% for d in data %}
+            <tr>
+                <td>{{ d['Name'] }}</td>
+                <td>{{ d['Days-present'] }}</td>
+                <td>{{ d['Working-days'] }}</td>
+                <td>{{ d['Attendance'] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        </div>
+        {% endif %}
+        <button  id="get-detailed-report-btn"> Detailed Report</button>
+        <div id="detailed-report-container">
+            <table border="5px" id="detailed-report-table" class="table table-bordered">
+                <tr id="header-row">
+                    
+                </tr>
+                <tbody id="detailed-tbody">
+                </tbody>
+            </table>
+        </div>
+        <div class="container">
+            <a href="/download-file" target="blank">
+                <button class='btn btn-primary'>Download</button>
+            </a>
+        </div>
+       
+
+    </body>
+
+    <script>
+       
+        $(document).ready(function(){
+
+
+
+            $("#get-detailed-report-btn").click(function(){
+                console.log("Clicked!!")
+                $.ajax({
+                    url: '/get-detailed-report',
+                    type: 'get',
+                    dataType: 'JSON',
+                    data:{
+                        name : ''
+                    },
+                    success:function(res){
+                        console.log("RES:",res);
+                        if(res['status']=="0"){
+                            console.log("RES-DATA",res['data']);
+                        }else{
+                            console.log("Rendering data:",res['data'])
+                            renderDetailedReport(res['data'])
+                        }
+                    },
+                    error:function(err){
+                        console.log("Error:",err);
+                    }
+                });
+                
+                console.log("END!!")
+            });
+
+            function renderDetailedReport(data){
+    
+                console.log(Object.keys(data[0]));
+                header_obj = data[0];
+                header_keys = Object.keys(header_obj);
+                
+    
+                $("#detailed-tbody").empty();
+                for(i in data){
+                    $("#detailed-tbody").append(`<tr>`);
+              
+                    for(k in header_keys){
+                        key = header_keys[k];
+                        console.log("Data is : ",data[i][key]);
+
+                        if(i==0){
+                            $("#detailed-tbody").append(`<th>${data[i][key]}</th>`);
+                            
+                        }
+                        else{
+                            $("#detailed-tbody").append(`<td>${data[i][key]}</td>`);
+                        }
+                        
+                       
+                        
+                        
+                            
+                    }   
+                    $("#detailed-tbody").append(`</tr>`);     
+                    //download button //post
+                    
+                }
+                
+                
+            }
+
+
+        }); 
+
+
+
+    </script>
+</html>
+
+
